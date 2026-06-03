@@ -37,12 +37,12 @@ def build_arg_parser():
     return parser
 
 
-def compute_md5(path):
-    md5 = hashlib.md5()
+def compute_hash(path):
+    digest = hashlib.sha256()
     with open(path, 'rb') as infile:
         for chunk in iter(lambda: infile.read(1024 * 1024), b''):
-            md5.update(chunk)
-    return md5.hexdigest()
+            digest.update(chunk)
+    return digest.hexdigest()
 
 
 def log_row(stdout_writer, rows, subject, transform_file, success, error):
@@ -188,7 +188,7 @@ def process_transform(dataset_dir, subject, transform_path, stdout_writer, rows)
                 )
                 return
 
-            tempfloat_md5 = compute_md5(tempfloat_path)
+            tempfloat_hash = compute_hash(tempfloat_path)
 
             transform_path.replace(backup_path)
             backup_created = True
@@ -196,8 +196,8 @@ def process_transform(dataset_dir, subject, transform_path, stdout_writer, rows)
             shutil.copy2(tempfloat_path, transform_path)
             os.chmod(transform_path, original_mode)
 
-            new_transform_md5 = compute_md5(transform_path)
-            if new_transform_md5 != tempfloat_md5:
+            new_transform_hash = compute_hash(transform_path)
+            if new_transform_hash != tempfloat_hash:
                 restore_backup_if_needed(transform_path, backup_path, original_mode)
                 log_row(
                     stdout_writer,
