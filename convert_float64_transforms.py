@@ -258,7 +258,13 @@ def main():
     check_ants_apply_transforms_available()
 
     dataset_dir = Path(args.bids_dataset).resolve()
+    log_file_path = Path(args.log_file).resolve()
     subject_list_path = Path(args.subject_list).resolve()
+
+    try:
+        log_file_path.parent.mkdir(parents=True, exist_ok=True)
+    except Exception as exc:
+        raise RuntimeError(f'failed to make directory {log_file_path.parent}.') from exc
 
     stdout_writer = csv.writer(
         sys.stdout,
@@ -274,7 +280,7 @@ def main():
         subjects = read_subjects(subject_list_path)
     except Exception as exc:
         df = pd.DataFrame(rows, columns=['subject', 'transform_file', 'success', 'error'])
-        df.to_csv('transform_conversion_log.csv', index=False)
+        df.to_csv(log_file_path, index=False)
         raise RuntimeError(f'failed to read subject list: {exc}') from exc
 
     for subject in subjects:
@@ -302,7 +308,7 @@ def main():
             process_transform(dataset_dir, subject, transform_path, stdout_writer, rows)
 
     df = pd.DataFrame(rows, columns=['subject', 'transform_file', 'success', 'error'])
-    df.to_csv('transform_conversion_log.csv', index=False)
+    df.to_csv(log_file_path, index=False)
 
 
 if __name__ == '__main__':
